@@ -1,288 +1,336 @@
 #include "rsa.h"
-#define BS 10
-using namespace std;
 
+mpz_class eul_m;
 
-unsigned int _lg(mpz_class num)//find logarithm
+mpz_class get_d(mpz_class a, mpz_class b) //find NOD of two numbers
 {
-    unsigned int cnt=0;
-    while(num!=1)
+    mpz_class c(1);
+
+    while(c!=0)
     {
-        num=num/2;
-        cnt++;
+        c=a%b;
+        a=b;
+        b=c;
     }
 
-    return cnt;
+    return a;
 }
 
 
-bool is_prt(mpz_class num)  //test of Prote numbers
-{
-    unsigned int llg=_lg(num);
-    bool rt=0;
 
-    for(unsigned int a=3;a<llg;a=a+2) //O(lg/2)
+
+mpz_class ext_d(mpz_class a, mpz_class b) //extended Euclidian alogrithm
+{
+
+mpz_class t,nt,r,nr,q,tmp;
+if(b<0)
+    b=-b;
+if(a<0)
+    a=b-(-a%b);
+
+    t=0;nt=1;r=b;nr=a%b;
+
+while(nr!=0)
+{
+    q=r/nr;
+    tmp=nt; nt=t-q*nt;t=tmp;
+    tmp=nr; nr=r-q*nr; r=tmp;
+
+}
+if(r>1)
+    return -1;
+if(t<0)
+    t=t+b;
+
+    return t;
+}
+
+
+
+void generate_open_key(struct key *k)
+{
+    k->e=gn_big_prm((BITS_EXP-2),BITS_EXP); //generate exponent
+
+//const char *u=k->e.get_str().c_str();
+
+    mpz_class q=::eul_m;
+
+    while(get_d(q,k->e)!=1) //must be coprime with (p-1)*(q-1)
     {
-        if((num%a==0))
-            return 0;
+        k->e=bg_num((BITS_EXP-2),BITS_EXP);
     }
 
-
-   mpz_class mn((num-1)/2);
-
-   for(size_t i=0;i< (llg/2);i++) //O(lg/2)*
-   {
-   unsigned int rnd=rand()%15; //rand number
-   mpz_class m_rnd(rnd);
-
-   mpz_class rst; //result
-
-//rand number ^ (num-1)/2 mod num must be -1
-//
-   mpz_powm(rst.get_mpz_t(),m_rnd.get_mpz_t(),mn.get_mpz_t(),num.get_mpz_t());  //rand ^ (num-1)/2 % num
-
-
-   if((rst+1)%num==0)
-   {
-       rt=1;
-       break;
-   }
-
-
-   }
-    return rt;
-}
-
-mpz_class gn_prt(unsigned short bts,unsigned int k) //generate Prote number
-{                                                   //k*(2^n)+1
-    if(k%2==0)                                      //where k is odd
-        k++;
-
-    mpz_class p_k(k);
-    mpz_class p_num;
-    mpz_class p_tw(2);
-    mpz_class p_rst; //result
-
-    mpz_pow_ui(p_rst.get_mpz_t(),p_tw.get_mpz_t(),bts); //2^n
-    p_num=(k*p_rst)+1; //(k*2^n)+1
-
-    return p_num;
-
-
 }
 
 
 
 
-
-
-mpz_class gn_big_prm(unsigned short bts_frm,unsigned short bts_to) //generate random big prime number
+void generate_closed_key( key *cls_k,key*op_k)
 {
-    srand(time(0));
+cls_k->mod=op_k->mod;
 
-     mpz_class aa;
+mpz_class c=ext_d(op_k->e,eul_m);
+
+//std::cout<<"eul\t"<<eul_m<<"\n";
+//std::cout<<"open e\t"<<op_k->e<<"\n";
+//std::cout<<"result\t"<<c<<"\n";
+
+cls_k->e=c;
+
+}
+
+void rsa_init_key( key *k)
+{
+    mpz_class p=gn_big_prm((BITS_MIN/2),(BITS_MAX/2)); //generate first prime number
+    mpz_class q=gn_big_prm((BITS_MIN/2),(BITS_MAX/2)); //generate second prime nmber
+
+    k->mod=p*q;
+    ::eul_m=(p-1)*(q-1);
+
+}
+
+void encr(char *ms,key open_key,msg *rs) //encrypt message
+{
+    mpz_class res; //copies to the result structure
+
+for(size_t i=0;i< strlen(ms);i++)
+{
+    short tt=ms[i];
+    mpz_class cr(tt);
+
+   mpz_powm(res.get_mpz_t(),cr.get_mpz_t(),open_key.e.get_mpz_t(),open_key.mod.get_mpz_t()); // encrypt message mes^ e mod m
+
+   strcpy(rs[i].m,res.get_str().c_str()); //copy to the result structure
+
+   /////////////////////////////
+   char *pt=(char*)rs[i].m;
+}
+
+}
+
+void encr (string ms, key open_key, mms* mq)
+{
+    mpz_class res; //copies to the result structure
+
+    //string rs; //encrypted message to return
+for(size_t i=0;i< ms.size();i++)
+{
+    unsigned short tt=(unsigned short)ms.at(i);
+    mpz_class cr(tt);
+
+    tt=cr.get_ui();
+
+    mpz_powm(res.get_mpz_t(),cr.get_mpz_t(),open_key.e.get_mpz_t(),open_key.mod.get_mpz_t()); // encrypt message mes^ e mod m
+   //res=pmod(cr,open_key.e,open_key.mod);
+   const char *y=res.get_str().c_str();
+
+   //rs.append(res.get_str()); //append to the result
 
 
-     bool ii=0;
-     short bts;
-
-     unsigned int a=rand()%20;
-     unsigned short k=rand()%15;
-
-     do
-        bts=rand()%bts_to;
-        while(bts<bts_frm);
+   mq[i].m.append(res.get_str());
+}
+}
 
 
-     if(k%2==0)
-        k++;
 
-     aa=a;
 
-     aa=gn_prt(bts,k);//k *2^n+1
-     ii=is_prt(aa);//verify if number is prime
+mpz_class encr(mpz_class ms,key open_key)
+{
+    mpz_class res;
 
-     while(!ii) //until the number is not prime
+   // mpz_powm(res.get_mpz_t(),ms.get_mpz_t(),open_key.e.get_mpz_t(),open_key.mod.get_mpz_t());
+    res=pmod(ms,open_key.e,open_key.mod);
+
+    return res;
+}
+
+
+
+
+
+
+
+
+
+
+void decr(msg *encr_ms, size_t ms_sz,key cls_key, char *msg) //decrypt message
+{
+    /////////////////////////
+    char ch[1]={0};             // sry didn't find any other solution ^_^
+    ///////////////////
+
+
+    for(int i=0;i< ms_sz ;i++)
     {
-     aa=gn_prt(bts,k);
-     ii=is_prt(aa);
-     k=k+2;
+        char *ptr=(char*)encr_ms[i].m;
+        mpz_class cr((char*)encr_ms[i].m);
+        mpz_class res;
+
+        mpz_powm(res.get_mpz_t(),cr.get_mpz_t(),cls_key.e.get_mpz_t(),cls_key.mod.get_mpz_t()); //decrypt message
+
+        unsigned int nn=res.get_ui();
+
+        ch[0]=(char)nn;
+        ch[1]='\0';
+
+        strcat(msg,ch);
+    }
+
+}
+
+string decr(mms *encr_ms ,size_t ms_sz,key cls_key)
+{
+    string rs; //decrypted message to return
+
+
+    /////////////////////////
+    char ch[1]={0};             // sry didn't find any other solution ^_^
+    ///////////////////
+
+
+
+    for(int i=0;i< ms_sz ;i++)
+    {
+        string tmp;
+        tmp=encr_ms[i].m;
+        //const char *lr=tmp.c_str();
+
+        mpz_class cr(tmp.c_str());
+        mpz_class res;
+
+
+
+        //res=pmod(cr,cls_key.e,cls_key.mod);
+        mpz_powm(res.get_mpz_t(),cr.get_mpz_t(),cls_key.e.get_mpz_t(),cls_key.mod.get_mpz_t()); //decrypt message
+
+        unsigned short u=res.get_ui();
+
+        ch[0]=(char)u;
+        ch[1]='\0';
+
+
+        rs.append(ch);
+
+
+        ///////////////////////
+       const char *mpt=rs.c_str();
 
     }
 
+    return rs;
 
- return aa;
+}
+
+mpz_class decr(mpz_class ms, key cls_key)
+{
+    mpz_class res;
+
+    //res=pmod(ms,cls_key.e,cls_key.mod);
+    mpz_powm(res.get_mpz_t(),ms.get_mpz_t(),cls_key.e.get_mpz_t(),cls_key.mod.get_mpz_t());
+
+    return res;
+
+
+
 }
 
 
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////
-mpz_class gn_nm(mpz_class nm,unsigned short bts) //generate big number
+void print_encr_msg(msg *ms,size_t sz)
 {
-    //printf("current bts in\n");
-    //printf("%d",bts);
-
-    for(size_t i=0;i<bts;i++)
-        nm=nm*2;
-
-
-    nm=nm+1;
-
-    return nm;
-}
-
-
-
-bool is(mpz_class num,mpz_class os)
-{
-    if(num%2==0)
-        return 0;
-
-    unsigned int lg=_lg(num);
-
-    for(unsigned int a=3;a<lg;a=a+2)
+    for(int i=0;i<sz;i++)
     {
-        if(num%a==0)
-            return 0;
-    }
+        char *pt=(char*)ms[i].m;
+        cout<<pt;
+        printf("\n\n");
 
-
-
-    for( int i=0;i<22;i++)
-    {
-
-    unsigned int nm=rand()%lg;
-    if(nm==1)
-        nm=3;
-
-    mpz_class mm(nm);
-
-//    unsigned short lg=log2();
-
-    mpz_class pt;
-    mpz_powm(pt.get_mpz_t(),mm.get_mpz_t(),os.get_mpz_t(),num.get_mpz_t()); //num ^ st % mod
-
-    for(short i=1;i<=lg;i++)
-    {
-        pt=(pt*pt)%num;
-        if(pt==1 || pt==(num-1))
-        {
-
-            return 1;
-        }
 
     }
-    }
-
-    return 0;
+    printf("\n\n");
 }
 
-
-
-mpz_class bg_num(unsigned short bts_frm,unsigned short bts_to) //find Big random number
-{                                                              //in range from_bts to to_bts
-	srand(time(0));
-
-	bool iz=0;
-
-	mpz_class nm;
-	mpz_class os;
-
-while(!iz)
+void print_encr_msg(mms *ms,size_t sz)
 {
-unsigned int bts=0;
-unsigned int num=rand()%bts_frm;
+    for(int i=0;i< sz;i++)
+    {
+        std::cout<< ms[i].m;
+        printf("\n\n");
 
-if(num%2==0)
-	num++;
+    }
+    printf("\n\n\n");
+}
 
-    while(bts<bts_frm)
-        bts=rand()%bts_to;
+void print_decr_msg(char *msg)
+{
+    for(size_t i=0;i<strlen(msg);i++)
+        cout<<msg[i];
 
-
-    nm=num;
-    os=num;
-
-    unsigned int llg=_lg(os);
-
-
-    nm=gn_nm(nm,(bts-llg)); //generate number
-    iz=is(nm,os);//check if number is prime
-
-	if(!iz)
-	{
-		while(_lg(nm)<bts_to)
-		{
-			nm=((nm-1)*2)+1;
+cout<<"\n\n";
+}
 
 
-			if((iz=is(nm,os))==1)
-				break;
-		}
+void print_decr_msg(string msg,size_t sz)
+{
 
+for(size_t i=1;i<=sz;i++)
+{
+const char y=msg[i-1];
+cout<<y;
+}
+//cout<<msg;
 
-	}
-
-//    std::cout<<"number: "<<nm.get_str()<<"\n";
-
-
+std::cout<<"\n";
 
 }
 
-    return nm;
-}
 
 
 /*
 int main()
 {
+struct key open_k; //open key
+struct key cls_key; //closed ket
+
+rsa_init_key(&open_k);
+generate_open_key(&open_k);
+generate_closed_key(&cls_key,&open_k);
+
+//////////////////////////////////////////////////////////
+std::cout<<"open key\n";
+std::cout<<open_k.mod<<"\n\n";
+std::cout<<open_k.e;
+std::cout<<"\n\n";
+
+std::cout<<"closed key\n";
+std::cout<<cls_key.mod<<"\n\n";
+std::cout<<cls_key.e<<"\n\n";
+////////////////////////////////////////////////////////////
 
 
 
-mpz_class bg=gn_big_prm(350,512);
-mpz_class tt=gn_big_prm(350,512);
-//mpz_class bg=bg_num(250,512);
+string mm="London is the capital of Great Britain";
+std::cout<<"\nmessage\t "<<mm<<"\n";
 
-unsigned int l=_lg(bg);
-unsigned int ll=_lg(tt);
+mms en[mm.size()]; //encrypted message
 
-std::cout<<"number 1\t"<<bg.get_str()<<"\t";
-std::cout<<"\tbits\t"<<l<<"\n\n";
+encr(mm,open_k,en);
+std::cout<<"encrypted message \n\n";
 
-std::cout<<"number 2"<<tt.get_str()<<"\t"<<"\tbits\t"<<ll<<"\n\n\n";
-
-mpz_class rt=bg*tt;
-unsigned int rt_l=_lg(rt);
-
-std::cout<<rt.get_str()<<"\n";
-std::cout<<"bits of result\t"<<rt_l;
-
-///////////////////////////////////////////////////////////////////////////////////////
+unsigned int zs=(sizeof(en)/sizeof(mms));//mm.size();
+print_encr_mess(en,zs);
 
 
-mpz_class dd=bg_num(350,512);   //generate first big  number
-mpz_class qq=bg_num(350,512);  //generate second big nmber
 
-mpz_class rr=dd*qq; //multiply them
+mm.clear();//memset(m,0,sizeof(m));
 
-unsigned int gl=_lg(dd);
-unsigned int ll=_lg(qq);
-unsigned int l_rr=_lg(rr);
+//decr(ras,5,cls_key,m);
+mm=decr(en,zs,cls_key);
 
-std::cout<<dd.get_str()<<"\n";
-std::cout<<"bits\t"<<gl<<"\n\n";
+std::cout<<"\n\n decrypted message";
+print_decr_msg(mm,mm.size());
 
 
-std::cout<<qq.get_str()<<"\n";
-std::cout<<"bits\t"<<ll<<"\n\n";
-
-std::cout<<"result\t"<<rr.get_str()<<"\n";
-std::cout<<"bits\t"<<l_rr<<"\n";
 
 
-    return 0;
+ return 7;
 }
 */
-
-

@@ -16,38 +16,6 @@ unsigned int _lg(mpz_class num)//find logarithm
 }
 
 
-mpz_class pmod(mpz_class nm,mpz_class ex,mpz_class md)
-{
-    mpz_class dd=1;
-
-    while(ex!=1)
-    {
-        if(ex%2==1)
-        {
-            dd=dd*nm;
-        }
-        if(md!=0)
-            nm=(nm*nm)%md;
-        else
-            nm=nm*nm;
-
-    //    const char *y=nm.get_str().c_str();
-
-        ex=ex/2;
-    }
-
-    if(md!=0)
-        nm=(nm*dd)%md;
-    else
-        nm=nm*dd;
-
-    if(nm>md)
-        nm=nm%md;
-
-    return nm;
-}
-
-
 
 bool is_prt(mpz_class num)  //test of Prote numbers
 {
@@ -106,8 +74,8 @@ mpz_class gn_prt(unsigned short bts,unsigned int k) //generate Prote number
 
 
 mpz_class gn_big_prm(unsigned short bts_frm,unsigned short bts_to) //generate random big prime number
-{
-    srand(time(0));
+{                                                                 //k*2^n+1 where k is odd
+    srand(time(0));                                               //and verify with modified miller test
 
      mpz_class aa;
 
@@ -115,29 +83,36 @@ mpz_class gn_big_prm(unsigned short bts_frm,unsigned short bts_to) //generate ra
      bool ii=0;
      short bts;
 
-     unsigned int a=(20);
-     unsigned short k=gen_rand(15);
 
-     do
+        unsigned int a=(20);
+        unsigned short k=gen_rand(15);
+
+
         bts=gen_rand(bts_to); //generate bits
-        while(bts<bts_frm);
+        if(bts<bts_frm)
+            bts=bts+bts_frm;
 
 
-     if(k%2==0)
-        k++;
+        if(k%2==0)
+            k++;
 
-     aa=a;
+        aa=a;
+        bts=bts-_lg(aa);
 
-     aa=gn_prt(bts,k);//k *2^n+1
-     ii=is_prt(aa);//verify if number is prime
+        aa=gn_prt(bts,k);//k *2^n+1
+        ii=is_prt(aa);//verify if number is prime
 
-     while(!ii) //until the number is not prime
-    {
-     aa=gn_prt(bts,k);
-     ii=is_prt(aa);
-     k=k+2;
+   // std::cout<<aa<<"\n";
 
-    }
+            while(!ii)
+            {
+                aa=gn_prt(bts,k);
+                ii=is_prt(aa);
+                k=k+2;
+             //   std::cout<<aa<<"\n";
+            }
+
+
 
 
  return aa;
@@ -149,14 +124,15 @@ mpz_class gn_big_prm(unsigned short bts_frm,unsigned short bts_to) //generate ra
 ////////////////////////////////////////////////////////////////////////////////////////////////
 mpz_class gn_nm(mpz_class nm,unsigned short bts) //generate big number
 {
-    //printf("current bts in\n");
-    //printf("%d",bts);
+    if(bts==1)
+        return (nm-1);
 
-    for(size_t i=0;i<bts;i++)
+    for(size_t i=1;i<bts;i++)
         nm=nm*2;
 
 
-    nm=nm+1;
+
+    nm=nm-1;
 
     return nm;
 }
@@ -169,9 +145,9 @@ bool is(mpz_class num,mpz_class os)
         return 0;
 
     unsigned int lg=(_lg(num));
+    bool is=0; //result
 
-
-    for(unsigned int a=3;a<(lg*5);a=a+2) //check for the dividers
+    for(unsigned int a=3;a<(lg);a=a+2) //check for the dividers
     {
         if(num%a==0)
             return 0;
@@ -179,13 +155,13 @@ bool is(mpz_class num,mpz_class os)
 
 
 
-    for( int i=0;i<lg;i++)
+    for( int i=0;i<(3);i++)
     {
   //generate random number num
   //and check by making ((num^os)^2) %num
   //must be 1 or num-1
 
-  unsigned int nm=gen_rand(lg);
+  unsigned int nm=gen_rand(lg*lg); //generate random number to be verified
 
     if(nm==1)
         nm=3;
@@ -198,89 +174,84 @@ bool is(mpz_class num,mpz_class os)
 //    unsigned short lg=log2();
 
     mpz_class pt;
-    mpz_powm(pt.get_mpz_t(),mm.get_mpz_t(),os.get_mpz_t(),num.get_mpz_t()); //num ^ st % mod
+    mpz_powm(pt.get_mpz_t(),mm.get_mpz_t(),os.get_mpz_t(),num.get_mpz_t()); //num ^ ground_num % mod
     if(pt==1 || pt==(num-1))
-        continue;
+    {
+        return 1;
+    }
 
-    for(short u=1;u<=(lg*lg);u++)
+    mpz_class cnt=(os*2); //counter
+    while(cnt<num) //(num^ground_num)^2 % mod
     {
         pt=(pt*pt)%num;
 
-
-        if(pt==(num-1)||pt==1)
+        if(pt==(num-1)) //number is prime
+        {
+            return 1;
             break;
+        }
+        if(pt==1)
+            return 0;
 
+        cnt=cnt*2;
     }
 
+
+    if(is)
+        break;
     }
 
-    return 1;
+    return 0;
 }
 
 
 
 mpz_class bg_num(unsigned short bts_frm,unsigned short bts_to) //find Big random number
-{
+{                                                              //generate number 2^n*k k is odd
 
 	bool iz=0;
 
 	mpz_class nm;
 	mpz_class os;
 
-while(!iz)
-{
-unsigned int bts=0;
-unsigned int num=gen_rand(bts_to); //find ground number (osnvie)
+	mpz_class r_nm;
 
+	unsigned int bts=0;
+    unsigned int num=gen_rand(10); //find ground number k
 if(num==0)
     num=2;
 
-//if(num%2==0) //must be odd
-//	num++;
+if(num%2==0)
+    num++;
+
+bts=gen_rand(bts_to); //find the bits size of the future number
+if(bts< bts_frm )
+    bts=bts+bts_frm;
 
 
-    bts=gen_rand(bts_to); //find the bits size of the future number
-    if(bts< bts_frm )
-        bts=bts+bts_frm;
+os=num; // ground number k
+mpz_class mn=gn_prt(bts,num); //(2^n)*k +1
+iz=is(mn,os);
+//std::cout<<mn<<"\n";
 
-
-
-    nm=num;
+while(!iz)
+{
+    num=num+2;
     os=num;
+    mn=gn_prt(bts,num);
+    iz=is(mn,os);
 
-    unsigned int llg=_lg(os); // *** HERE STUCKS ***
-
-
-    nm=gn_nm(nm,(bts-llg)); //generate number //*** (bts-llg) ***
-
-    iz=is(nm,os);//check if number is prime
-
-	if(!iz)
-	{
-		while(1)
-		{
-		    unsigned int l=_lg(nm);
-		    if(l>bts_to)
-                break;
-
-			nm=((nm-1)*2)+1; //generate new numbrt
-
-
-			if((iz=is(nm,os))==1)
-				break;
-		}
-
-
-	}
-
-//    std::cout<<"number: "<<nm.get_str()<<"\n";
+ //   std::cout<<mn<<"\n";
 
 
 
 }
 
-    return nm;
+    return mn;
 }
+
+
+
 
 
 /*

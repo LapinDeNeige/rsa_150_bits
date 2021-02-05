@@ -11,10 +11,11 @@
 
 mpz_class gn_big_prm(unsigned  short bts_frm,unsigned short bts_to); //Prote big prime number
 mpz_class bg_num(unsigned short bts_frm,unsigned short bts_to); //
+//mpz_class  gn_llt(unsigned short bts_frm,unsigned short bts_to);
 
 unsigned int _lg(mpz_class num); //get bit count of the big number
 
-mpz_class pmod(mpz_class nm,mpz_class ex,mpz_class md);
+
 
 #endif // MAIN_H_INCLUDED
 

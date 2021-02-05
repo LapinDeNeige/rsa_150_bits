@@ -1,11 +1,11 @@
 #include "gen_prm.h"
 #include "gen_bits.h"
-#include "rsa.h"
+//#include "rsa.h"
 
 #ifndef RSA_H
 #define RSA_H
 
-#endif // RSA_H
+
 #define BITS_MIN 150 //bits of exponent
 #define BITS_MAX 1024
 

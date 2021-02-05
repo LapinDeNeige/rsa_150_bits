@@ -57,7 +57,7 @@ void generate_open_key(struct key *k)
 
     while(get_d(q,k->e)!=1) //must be coprime with (p-1)*(q-1)
     {
-        k->e=bg_num((BITS_EXP-2),BITS_EXP);
+        k->e=gn_big_prm((BITS_EXP-2),BITS_EXP);
     }
 
 }
@@ -138,8 +138,8 @@ mpz_class encr(mpz_class ms,key open_key)
 {
     mpz_class res;
 
-   // mpz_powm(res.get_mpz_t(),ms.get_mpz_t(),open_key.e.get_mpz_t(),open_key.mod.get_mpz_t());
-    res=pmod(ms,open_key.e,open_key.mod);
+    mpz_powm(res.get_mpz_t(),ms.get_mpz_t(),open_key.e.get_mpz_t(),open_key.mod.get_mpz_t());
+//    res=pmod(ms,open_key.e,open_key.mod);
 
     return res;
 }

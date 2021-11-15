@@ -8,16 +8,17 @@
 #include <stdio.h>
 
 #include "gen_bits.h"
+#include "get_number_bits.h"
+//#include "pow.h"
 
-mpz_class gn_big_prm(unsigned  short bts_frm,unsigned short bts_to); //Prote big prime number
-mpz_class bg_num(unsigned short bts_frm,unsigned short bts_to); //
-//mpz_class  gn_llt(unsigned short bts_frm,unsigned short bts_to);
-
-unsigned int _lg(mpz_class num); //get bit count of the big number
-
-
-
+mpz_class get_big_prote_number(unsigned short bits_min,unsigned short bits_max); //
+mpz_class generate_big_prime(unsigned int bits_min,unsigned int bits_max);
+	
+bool is_prime(mpz_class num,mpz_class ground_number);
+mpz_class gen_big_num(mpz_class num,unsigned short bits);
+bool is_prote_prime(mpz_class num); 
 #endif // MAIN_H_INCLUDED
+
 
 
 /*

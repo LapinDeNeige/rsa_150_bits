@@ -2,47 +2,32 @@
 #define BS 10
 using namespace std;
 
-
-unsigned int _lg(mpz_class num)//find logarithm
+bool is_prote_prime(mpz_class num)  //if Prote number is prime 
 {
-    unsigned int cnt=0;
-    while(num!=1)
-    {
-        num=num/2;
-        cnt++;
-    }
-
-    return cnt;
-}
+    unsigned int bits=get_number_bits(num);
 
 
-
-bool is_prt(mpz_class num)  //test of Prote numbers
-{
-    unsigned int llg=_lg(num);
-
-
-    for(unsigned int a=3;a<llg;a=a+2) //O(lg/2)
+    for(unsigned int a=3;a<bits;a=a+2) //O(lg/2)
     {
         if((num%a==0))
             return 0;
     }
 
 
-   mpz_class mn((num-1)/2);
+   mpz_class exp((num-1)/2);
+   unsigned int rand_number=gen_rand(0,15); //rand number
+   mpz_class m_rand(rand_number);
 
-
-   unsigned int rnd=gen_rand(15); //rand number
-   mpz_class m_rnd(rnd);
-
-   mpz_class rst; //result
+   mpz_class result; 
 
 //rand number ^ (num-1)/2 mod num must be -1
 //
-   mpz_powm(rst.get_mpz_t(),m_rnd.get_mpz_t(),mn.get_mpz_t(),num.get_mpz_t());  //rand ^ (num-1)/2 % num
+
+	result = pow_number(m_rand,exp,num);
+   //mpz_powm(result.get_mpz_t(),m_rand.get_mpz_t(),exp.get_mpz_t(),num.get_mpz_t());  //rand ^ (num-1)/2 % num
 
 
-   if((rst+1)%num==0)
+   if((result+1) % num == 0) //if result  mod num is num-1 number is prime 
         return 1;
 
 
@@ -50,18 +35,21 @@ bool is_prt(mpz_class num)  //test of Prote numbers
     return 0;
 }
 
-mpz_class gn_prt(unsigned short bts,unsigned int k) //generate Prote number
+mpz_class generate_prote_number(unsigned short bits,unsigned int k) //generate Prote number
 {                                                   //k*(2^n)+1
-    if(k%2==0)                                      //where k is odd
+    if(k%2 == 0)                                      //where k is odd
         k++;
 
     mpz_class p_k(k);
     mpz_class p_num;
-    mpz_class p_tw(2);
-    mpz_class p_rst; //result
+    mpz_class p_two(2);
+    mpz_class p_result; //result
 
-    mpz_pow_ui(p_rst.get_mpz_t(),p_tw.get_mpz_t(),bts); //2^n
-    p_num=(k*p_rst)+1; //(k*2^n)+1
+	mpz_class mpz_bits = bits;
+	
+	p_result = pow_number(p_two,bits,0); //2^n
+    //mpz_pow_ui(p_rst.get_mpz_t(),p_tw.get_mpz_t(),bits); //2^n
+    p_num=(k * p_result) + 1; //(k*2^n)+1
 
     return p_num;
 
@@ -73,181 +61,154 @@ mpz_class gn_prt(unsigned short bts,unsigned int k) //generate Prote number
 
 
 
-mpz_class gn_big_prm(unsigned short bts_frm,unsigned short bts_to) //generate random big prime number
-{                                                                 //k*2^n+1 where k is odd
-    srand(time(0));                                               //and verify with modified miller test
-
-     mpz_class aa;
-
-
-     bool ii=0;
-     short bts;
-
-
-        unsigned int a=(20);
-        unsigned short k=gen_rand(15);
-
-
-        bts=gen_rand(bts_to); //generate bits
-        if(bts<bts_frm)
-            bts=bts+bts_frm;
-
-
-        if(k%2==0)
-            k++;
-
-        aa=a;
-        bts=bts-_lg(aa);
-
-        aa=gn_prt(bts,k);//k *2^n+1
-        ii=is_prt(aa);//verify if number is prime
-
-   // std::cout<<aa<<"\n";
-
-            while(!ii)
-            {
-                aa=gn_prt(bts,k);
-                ii=is_prt(aa);
-                k=k+2;
-             //   std::cout<<aa<<"\n";
-            }
-
-
-
-
- return aa;
+mpz_class generate_big_prime(unsigned int bits_min,unsigned int bits_max) //generate random big prime number
+{
+	
+	bool is_prm = false;
+	unsigned short bits_rand;
+	const mpz_class four = 4;
+	mpz_class x;
+	mpz_class big_num;
+	
+	bits_rand = gen_rand(bits_min,bits_max);
+	x = gen_bits_cnt_big(bits_rand);
+	
+	if((x % 2) == 0)
+		x=x + 1;
+		
+	while(!is_prm)
+	{
+		big_num = (four *x )+1; //4x+1
+		is_prm = is_prime(big_num,x);
+		x =  x + 2;
+	}
+	
+     
+     return big_num;
 }
 
 
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-mpz_class gn_nm(mpz_class nm,unsigned short bts) //generate big number
+mpz_class gen_big_num(mpz_class num,unsigned short bits) //generate big number
 {
-    if(bts==1)
-        return (nm-1);
-
-    for(size_t i=1;i<bts;i++)
-        nm=nm*2;
-
-
-
-    nm=nm-1;
-
-    return nm;
+    if(bits == 1)
+        return (num - 1);
+	 if(num == 0)
+		return 0;
+	
+    for(size_t i=1;i<=bits;i++)
+    {
+		unsigned int bits_of_cur_number = get_number_bits(num);
+		
+		if(bits_of_cur_number == bits)
+			break;
+		
+		num=num * 2;
+	}
+	
+    return num;
 }
 
 
 
-bool is(mpz_class num,mpz_class os)
+bool is_prime(mpz_class num,mpz_class ground_number)
 {
     if(num%2==0||num==1) //number is not odd
         return 0;
 
-    unsigned int lg=(_lg(num));
-    bool is=0; //result
-
+    unsigned int lg=(get_number_bits(num));
+  
     for(unsigned int a=3;a<(lg);a=a+2) //check for the dividers
     {
-        if(num%a==0)
+        if((num % a) == 0)
             return 0;
     }
 
 
 
-    for( int i=0;i<(3);i++)
+    for( int i=0;i < 3;i++)
     {
   //generate random number num
   //and check by making ((num^os)^2) %num
   //must be 1 or num-1
 
-  unsigned int nm=gen_rand(lg*lg); //generate random number to be verified
+		mpz_class number_to_verify = gen_rand(0,5); //generate random number to be verified
 
-    if(nm==1)
-        nm=3;
+		if(number_to_verify == 1)
+			number_to_verify = 3;
 
-    mpz_class mm(nm);
+		mpz_class tmp_result;
+		
+	//	tmp_result = pow_number(number_to_verify,ground_number,0);
+		mpz_powm(tmp_result.get_mpz_t(),number_to_verify.get_mpz_t(),ground_number.get_mpz_t(),num.get_mpz_t()); //num ^ ground_num % mod
+		if(tmp_result == 1)
+			return 1;
+		if(tmp_result == (num-1))
+			return 1;
+		
+		mpz_class two(2);
+        
+        unsigned int bits_number = get_number_bits(num);
+        unsigned int cnt = 1;
+        
+		while(cnt < (bits_number/2)) 
+		{
+			tmp_result = (tmp_result * tmp_result) % num;  //(num^ground_num)^2 % mod
+			
+			if(tmp_result == (num - 1)) //number is prime
+				return 1;
+			
+			
+			if(tmp_result == 1)
+				return 1;
 
-
-
-
-//    unsigned short lg=log2();
-
-    mpz_class pt;
-    mpz_powm(pt.get_mpz_t(),mm.get_mpz_t(),os.get_mpz_t(),num.get_mpz_t()); //num ^ ground_num % mod
-    if(pt==1 || pt==(num-1))
-    {
-        return 1;
+			cnt=cnt*2;
+		}
+		
     }
-
-    mpz_class cnt=(os*2); //counter
-    while(cnt<num) //(num^ground_num)^2 % mod
-    {
-        pt=(pt*pt)%num;
-
-        if(pt==(num-1)) //number is prime
-        {
-            return 1;
-            break;
-        }
-        if(pt==1)
-            return 0;
-
-        cnt=cnt*2;
-    }
-
-
-    if(is)
-        break;
-    }
-
+    
+	
     return 0;
 }
 
 
 
-mpz_class bg_num(unsigned short bts_frm,unsigned short bts_to) //find Big random number
+mpz_class get_big_prote_number(unsigned short bits_min,unsigned short bits_max) //find Big random number
 {                                                              //generate number 2^n*k k is odd
+                                                               //generate random big prime number                            //k*2^n+1 where k is odd                                               //and verify with modified miller test
+	bool is_prime = 0;
 
-	bool iz=0;
-
-	mpz_class nm;
 	mpz_class os;
+    mpz_class big_prote_number;; 
 
-	mpz_class r_nm;
 
 	unsigned int bts=0;
-    unsigned int num=gen_rand(10); //find ground number k
-if(num==0)
-    num=2;
+    unsigned int k=gen_rand(1,15); //find ground number k
 
-if(num%2==0)
-    num++;
+    if(k == 0)
+        k = 2;
 
-bts=gen_rand(bts_to); //find the bits size of the future number
-if(bts< bts_frm )
-    bts=bts+bts_frm;
+    if(k%2 == 0)
+        k++;
 
+    
+    bts=gen_rand(bits_min,bits_max); //find the bits size of the future number
+    
 
-os=num; // ground number k
-mpz_class mn=gn_prt(bts,num); //(2^n)*k +1
-iz=is(mn,os);
-//std::cout<<mn<<"\n";
+    os=k; // ground number k
+    
+    while(!is_prime)
+    {
+		
+        big_prote_number = generate_prote_number(bts,k); //(2^n)*k +1
+        is_prime = is_prote_prime(big_prote_number);
+        k= k + 2;
+        os = k;
+    }
 
-while(!iz)
-{
-    num=num+2;
-    os=num;
-    mn=gn_prt(bts,num);
-    iz=is(mn,os);
-
- //   std::cout<<mn<<"\n";
-
-
-
-}
-
-    return mn;
+    return big_prote_number;
 }
 
 

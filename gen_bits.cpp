@@ -1,135 +1,194 @@
 #include "gen_bits.h"
 
-#define MX 99999999
+#define DEFAULT_NUMBER 4294967295 //32 BITS NUMBER
+
 
 void _usleep(TIME t) //halt current executing thread for some number of milliseocnds
 {
                     //depending on the OS
-#ifdef _WIN32
-Sleep(t);
-#elif (linux ||__linux || __linux__)
-usleep(t);
-#endif // _WIN32_
+	#ifdef _WIN32    //if windows 
+	Sleep(t);
+	#elif (linux ||__linux || __linux__)
+	usleep(t);
+	#endif // _WIN32_
 
 }
 
 
-//generate bbits by count
+//generate bits by count
+
 unsigned int  gen_bits_cnt(unsigned short bit_cnt)
 {
-unsigned int ret=0;
-unsigned short y=0;
+	unsigned int ret=0;
+	unsigned short y = 0;
 
-if(bit_cnt > 32)
-    bit_cnt=32;
+	if(bit_cnt > 32)
+		bit_cnt = 32;
 
-for(unsigned short i=0;i<bit_cnt;i++)
-{
-ret=ret<<1;
+	for(unsigned short i = 0;i < bit_cnt;i++)
+	{
+		ret=ret << 1;
 
-struct timeval vl;
-gettimeofday(&vl,0); //get time
-unsigned short o=(short)vl.tv_usec; //time
+		struct timeval vl;
+		gettimeofday(&vl,0); //get time
+		unsigned short o = (short)vl.tv_usec; //time
 
-unsigned short cl=clock();
-unsigned short y=0;
+		unsigned short cl = clock();
+		unsigned short y = 0;
 
-if(o&1==0) //if number is not odd
-    y=((cl&0b1111)<<4)|(o&0b1111);    //first clock then time
-else
-    y=((o&0b1111)<<4)|(cl&0b1111);            //first time then clock
+		if(o & 1 == 0) //if number is not odd
+			y = ((cl&0b1111)<<4)|(o&0b1111);    //first clock then time
+		else
+			y = ((o&0b1111)<<4)|(cl&0b1111);            //first time then clock
 
-y=(y&1);
-ret=ret|y;
+		y = ( y& 1);
+		ret = ret | y;
 
-_usleep(5);
+		_usleep(5);
+	}
+	return ret;
 }
-return ret;
 
-}
-
-mpz_class gen_bits_cnt(short bts)
+mpz_class gen_bits_cnt_big(unsigned short bit_cnt)
 {
     mpz_class b_num=0;
     std::string st_num;
     unsigned int num;
+	
+	mpz_class mpz_bits_cnt=bit_cnt;
+	const mpz_class two = 2;
+	mpz_class standart_num;
+	
+	unsigned short bits = 0;
+	if(bit_cnt > 32)
+		bits = 32;
+	else 
+		bits=bit_cnt;
+		
+//	standart_num = pow_number(two,mpz_bits_cnt,0); //2^n
+	mpz_pow_ui(standart_num.get_mpz_t(),two.get_mpz_t(),bit_cnt); //
+	int i;
+	
+	
+	for(i=0;i<bit_cnt;i=i+bits)
+	{
+		unsigned int temp_num=gen_bits_cnt(bits);
+	
+		std::stringstream ss;
+		ss<<temp_num; //convert to string
+		st_num.append(ss.str());
 
-unsigned short bits=0;
-if(bts>31)
-    bits=31;
-else
-    bits=bts;
-
-for(int i=0;i<bts;i=i+bits)
-{
- unsigned int temp_num=gen_bits_cnt(bits);
+	}
 
 
- std::stringstream ss;
- ss<<temp_num; //convert to string
- st_num.append(ss.str());
-
- //b_num=st_num;
-}
-b_num=st_num;
-
-return b_num;
-
-}
-
-
-
-unsigned int gen_rand(unsigned int nm)
-{
-if(nm==0)
-    nm=2;
-
-struct timeval vl;
-unsigned short h=0;
-unsigned short tmp;
-
-gettimeofday(&vl,0);
-
-tmp=(short)vl.tv_usec;
-unsigned short cl=(unsigned short)clock(); //take current milliseconds value
-
-if(cl&1==0) //if number is odd
-	h=(tmp<<16)|(cl&0b1111111111111111); //first time then clock
-else
-	h=(cl<<16)|(tmp&0b111111111111111); //first clock then time
-
-h=h%nm;
-
-_usleep(10);
-
-return h;
+	b_num=st_num;
+	if(b_num > standart_num)
+		b_num=(b_num%standart_num);
+		
+	return b_num;
 
 }
 
 
 
-
-mpz_class gen_rand(mpz_class nm)  //generate big random number
+unsigned int gen_rand(unsigned int nm_min,unsigned int nm_max)
 {
-std::string st_num;
-unsigned int num;
-mpz_class b_num=0;
+	if( (nm_max==0))
+		return 0;
+    
+	if(nm_min> nm_max)
+	{
+		unsigned int nm_tmp=nm_min;
+		nm_min=nm_max;
+		nm_max=nm_tmp;
+	}
 
-while(b_num < nm)
-{
- unsigned int temp_num=gen_rand(MX);
+	struct timeval vl;
+	unsigned short current_num=0;
+	unsigned short tmp;
 
- std::stringstream ss;
- ss<<temp_num; //convert to string
- st_num.append(ss.str());
+	gettimeofday(&vl,0);
 
- b_num=st_num;
+	tmp=(short)vl.tv_usec;
+	unsigned short cl=(unsigned short)clock(); //take current milliseconds value
+
+	if(cl&1==0) //if number is odd
+		current_num=(tmp<<16)|(cl&0b1111111111111111); //first time then clock
+	else
+		current_num=(cl<<16)|(tmp&0b111111111111111); //first clock then time
+
+
+	if(current_num > nm_max)
+		current_num=current_num % nm_max;
+
+	if(current_num < nm_min)
+		current_num=nm_min;
+
+
+	_usleep(30);
+
+	return current_num;
+
 }
 
-if(b_num > nm)
-    b_num = (b_num%nm);
 
-return b_num;
+
+
+mpz_class gen_rand(mpz_class nm_min,mpz_class nm_max)  //generate big random number
+{
+	std::string string_num;
+	unsigned int num;
+	mpz_class current_num=0;
+
+	unsigned int rand_num_min;
+	unsigned int rand_num_max;
+
+
+	if(nm_min> nm_max)
+	{
+		mpz_class nm_tmp=nm_min;
+		nm_min=nm_max;
+		nm_max=nm_tmp;
+	}
+
+
+	if(nm_max > DEFAULT_NUMBER)
+		rand_num_max=DEFAULT_NUMBER;
+
+	else if(nm_min > DEFAULT_NUMBER)
+		rand_num_min=DEFAULT_NUMBER-2;
+			
+	else if((nm_max > DEFAULT_NUMBER) && (nm_min <DEFAULT_NUMBER))
+	{
+		rand_num_max=DEFAULT_NUMBER;
+		rand_num_min=nm_min.get_ui();
+	}
+
+	else 
+	{
+		rand_num_min=nm_min.get_ui();
+		rand_num_max=nm_max.get_ui();
+	}
+		
+	while(current_num < nm_max)
+	{
+	 
+	 unsigned int temp_num=gen_rand(rand_num_min,rand_num_max);
+
+	 std::stringstream ss;
+	 ss<<temp_num; //convert to string
+	 string_num.append(ss.str());
+
+	 current_num=string_num;
+	}
+
+	if(current_num> nm_max)
+		current_num=current_num%nm_max;
+
+	if(current_num < nm_min)
+		current_num=nm_min;
+
+	return current_num;
 }
 
 

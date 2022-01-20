@@ -96,11 +96,11 @@ int main()
 {
 	key open_key;
 	key closed_key;
-	msg_char encrypted_message[3];
 	
 	char * file_path = "/home/usr/Documents/2gis";
 		
-		
+	char *message ="CocaCola";
+	msg_char encrypted_message[strlen(message)+1];
 	
     open_key = rsa_generate_open_key(100,200);
     closed_key = rsa_generate_closed_key(open_key);
@@ -110,11 +110,19 @@ int main()
     std::cout << "closed key" << closed_key.e.get_str() <<  " " <<closed_key.mod.get_str() << endl; 
     std::cout << "bits " << get_number_bits(closed_key.e)<<"+" << get_number_bits(closed_key.mod) << endl;
     
-    
+    std::cout<<"message "<<message<<endl;
     std::cout << "\n\n\n";
-	short ret = encrypt_from_file(file_path, open_key, encrypted_message);
-	if(ret <=0)
-		printf("errpr ");
+    
+    rsa_encrypt(message,open_key,encrypted_message);
+    std::cout<<"message encrypted\n\n";
+    
+    
+    
+    
+    
+//	short ret = encrypt_from_file(file_path, open_key, encrypted_message);
+	//if(ret <=0)
+		//printf("errpr ");
 
     
 	

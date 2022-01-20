@@ -5,7 +5,13 @@
 #ifndef GET_NUMBER_BITS_H
 #define GET_NUMBER_BITS_H
 
-unsigned int get_number_bits(mpz_class num); //get bit count of the big number
+/**
+Gets bit count of the big number
+@author
+@param number to get bits counts from
+*/
+
+unsigned int get_number_bits(mpz_class num);
 
 #endif
 

@@ -1,11 +1,10 @@
-#include "../../rsa_150_bits/gen_prm.h"
+#include "gen_prm.h"
 #include <math.h>
 #include <unistd.h>
-//#include "rsa.h"
-#include "../../rsa_150_bits/rsa.h"
-#include "../../rsa_150_bits/gen_bits.h"
-#include "../../rsa_150_bits/pow_number.h"
-#include "../../rsa_150_bits/get_number_bits.h"
+#include "rsa.h"
+#include "gen_bits.h"
+#include "pow_number.h"
+#include "get_number_bits.h"
 #include <iostream>
 #include <stdio.h>
 #include <string>

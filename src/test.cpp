@@ -61,9 +61,9 @@ short encrypt_from_file(char *file_path,key open_key, msg_char *encrypted_msg)
 		std::cout << "null";
 		for(int i = 0; i < file_size; i= i+31)
 		{
-			rst = 32;
+			//rst = 32;
 			std::cout << "zero";
-		//	size_t rst = fread(buf,8,31,fil);
+			size_t rst = fread(buf,8,31,fil);
 			
 			if(rst != 31)
 			{

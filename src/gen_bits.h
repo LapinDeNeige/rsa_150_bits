@@ -3,14 +3,15 @@
 #include <time.h>
 #include <iostream>
 #include <math.h>
-#include <gmpxx.h>
 #include <string>
 #include <sstream>
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "../include/gmpxx.h"
 #include "get_number_bits.h"
 #include  "pow_number.h"
+
 
 #ifdef _WIN32 //if os is windowd
 #include <Windows.h>

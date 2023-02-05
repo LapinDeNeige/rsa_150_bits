@@ -1,4 +1,4 @@
-#include <gmpxx.h>
+#include "../include/gmpxx.h"
 #include <time.h>
 #include <math.h>
 #include <stdio.h>

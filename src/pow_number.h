@@ -1,6 +1,6 @@
 #include <math.h>
 #include <iostream>
-#include <gmpxx.h>
+#include "../include/gmpxx.h"
 
 
 #ifndef POW_NUMBER_H

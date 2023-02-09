@@ -145,12 +145,13 @@ mpz_class rsa_encrypt(mpz_class ms,key open_key)
 {
     mpz_class res;
 
-	res = pow_number(ms,open_key.e,open_key.mod);
+    res = pow_number(ms,open_key.e,open_key.mod);
     //mpz_powm(res.get_mpz_t(),ms.get_mpz_t(),open_key.e.get_mpz_t(),open_key.mod.get_mpz_t());
 //    res=pmod(ms,open_key.e,open_key.mod);
 
     return res;
 }
+
 
 
 
@@ -233,6 +234,14 @@ mpz_class rsa_decrypt(mpz_class ms, key cls_key)
 }
 
 
+unsigned int rsa_get_key_size(key k)
+{
+    unsigned int result=0;
+    unsigned int size_e=get_number_bits(k.e);
+    unsigned int size_mod=get_number_bits(k.mod);
+    result=size_e+size_mod;
 
+    return result;
+}
 
 

@@ -1,6 +1,7 @@
 #include "gen_prm.h"
 #include "gen_bits.h"
 #include "pow_number.h"
+#include "get_number_bits.h"
 #include "../include/gmpxx.h"
 
 
@@ -87,6 +88,6 @@ Decrypts RSA big number message
 */
 mpz_class rsa_decrypt(mpz_class ms, key cls_key);
 
-
+unsigned int rsa_get_key_size(key k);
 
 #endif
